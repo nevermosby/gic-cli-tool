@@ -112,7 +112,34 @@ func command() {
 					Category: "vm",
 					Usage:    "delete an existing vm",
 					Action: func(c *cli.Context) error {
-						fmt.Println("start to delete an existing: ", c.Args().First())
+						fmt.Println("start to delete an existing vm: ", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:     "restart",
+					Category: "vm",
+					Usage:    "restart an existing vm",
+					Action: func(c *cli.Context) error {
+						fmt.Println("start to restart an existing vm: ", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:     "shutdown",
+					Category: "vm",
+					Usage:    "shutdown an existing vm",
+					Action: func(c *cli.Context) error {
+						fmt.Println("start to shutdown an existing vm: ", c.Args().First())
+						return nil
+					},
+				},
+				{
+					Name:     "poweron",
+					Category: "vm",
+					Usage:    "poweron an existing vm",
+					Action: func(c *cli.Context) error {
+						fmt.Println("start to poweron an existing vm: ", c.Args().First())
 						return nil
 					},
 				},
@@ -138,23 +165,10 @@ func noArgs(c *cli.Context) error {
 }
 
 func main() {
-	//   app := &cli.App{
-	//     Commands: []*cli.Command{
-	//       {
-	//         Name: "noop",
-	//       },
-	//       {
-	//         Name:     "add",
-	//         Category: "template",
-	//       },
-	//       {
-	//         Name:     "remove",
-	//         Category: "template",
-	//       },
-	//     },
-	//   }
 	info()
 	command()
+
+	// default action behaviour
 	app.Action = noArgs
 
 	err := app.Run(os.Args)
