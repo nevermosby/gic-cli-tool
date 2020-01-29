@@ -156,7 +156,7 @@ func command() {
 		},
 	}
 }
-
+// the default behaviour for other commands
 func noArgs(c *cli.Context) error {
 
 	cli.ShowAppHelp(c)
