@@ -159,9 +159,9 @@ func command() {
 // the default behaviour for other commands
 func noArgs(c *cli.Context) error {
 
-	cli.ShowAppHelp(c)
-
-	return cli.NewExitError("no commands provided", 2)
+	// cli.ShowAppHelp(c)
+	// TODO: show the command for users
+	return cli.NewExitError("No such commands provided. Run 'gic help' for usage", 2)
 }
 
 func main() {
