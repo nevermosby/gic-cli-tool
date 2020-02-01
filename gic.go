@@ -4,11 +4,21 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
+	"github.com/nevermosby/gic-cli-tool/config"
+	gic "github.com/nevermosby/gic-cloud-sdk-go"
 	"github.com/urfave/cli/v2"
 )
 
-var app = &cli.App{}
+const (
+	GICBaseUrl = "http://api2.capitalonline.net"
+)
+
+var (
+	app = &cli.App{}
+	p   = fmt.Println
+)
 
 func init() {
 	// TODO:
@@ -36,6 +46,39 @@ func command() {
 			Usage:   "login GIC platform to get the token and store it locally",
 			Action: func(c *cli.Context) error {
 				fmt.Println("Start to login: ", c.Args().First())
+				if c.NArg() == 0 {
+					// if there is no args provided, check the legacy config
+					// load the config file first, check the token is created less than one hour
+					token := config.CheckToken()
+					if token != "" {
+						// p("token is already valid: ",token)
+						p("logged already")
+					}
+
+				} else {
+					// do the interactive input
+					// or read from os.env
+					// use the provides cred to login
+					fmt.Println("list the command args:", c.Args())
+					// use sdk to login to get token
+					var client = &gic.Client{}
+					client.Init(GICBaseUrl, "")
+					client.Login("aaa", "bbb")
+					fmt.Println("login token:", client.Token)
+					configFile, err := config.Load("")
+					if err != nil {
+						log.Fatal(err)
+					}
+					configFile.Url = GICBaseUrl
+					configFile.Username = "aaa"
+					configFile.Cred = "bbb"
+					configFile.Token.Val = client.Token
+					configFile.Token.CreatedAt = time.Now().Format(time.RFC3339)
+
+					// then store the info into config file
+					configFile.Save()
+				}
+
 				return nil
 			},
 		},
@@ -156,12 +199,12 @@ func command() {
 		},
 	}
 }
+
 // the default behaviour for other commands
 func noArgs(c *cli.Context) error {
 
 	// cli.ShowAppHelp(c)
-	// TODO: show the command for users
-	return cli.NewExitError("No such commands provided. Run 'gic help' for usage", 2)
+	return cli.NewExitError("No such commands provided: "+"'"+c.Args().First()+"'"+". Run 'gic help' for usage", 2)
 }
 
 func main() {

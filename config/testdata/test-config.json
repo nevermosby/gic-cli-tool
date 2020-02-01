@@ -1,0 +1,10 @@
+{
+    // for auth
+    "url": "http://api2.capitalonline.net",
+    "username": "",
+    "cred": "",
+    "token": {
+        "val": "",
+        "createdAt":""
+    }
+}
