@@ -8,6 +8,7 @@ import (
 
 	"github.com/nevermosby/gic-cli-tool/config"
 	gic "github.com/nevermosby/gic-cloud-sdk-go"
+	"github.com/nevermosby/promptui"
 	"github.com/urfave/cli/v2"
 )
 
@@ -53,32 +54,38 @@ func command() {
 					if token != "" {
 						// p("token is already valid: ",token)
 						p("logged already")
-					}
+					} else {
+						p("Token is expired, pls login mannually")
+						// do the interactive input
+						usernameProm := promptui.Prompt{
+							Label: "Username",
+						}
+						username, err := usernameProm.Run()
+						if err != nil {
+							fmt.Printf("username input failed %v\n", err)
+						}
+						fmt.Printf("Your username is %q\n", username)
 
+						pwdProm := promptui.Prompt{
+							Label: "Password",
+							// Validate: validate,
+							Mask: ' ',
+						}
+						pwd, err := pwdProm.Run()
+						if err != nil {
+							fmt.Printf("Prompt failed %v\n", err)
+						}
+						fmt.Printf("Your password is %q\n", pwd)
+
+						// use sdk to login to get token
+						// then store the info into config file
+						gicLogin2Save(username, pwd)
+					}
 				} else {
-					// do the interactive input
-					// or read from os.env
 					// use the provides cred to login
 					fmt.Println("list the command args:", c.Args())
-					// use sdk to login to get token
-					var client = &gic.Client{}
-					client.Init(GICBaseUrl, "")
-					client.Login("aaa", "bbb")
-					fmt.Println("login token:", client.Token)
-					configFile, err := config.Load("")
-					if err != nil {
-						log.Fatal(err)
-					}
-					configFile.Url = GICBaseUrl
-					configFile.Username = "aaa"
-					configFile.Cred = "bbb"
-					configFile.Token.Val = client.Token
-					configFile.Token.CreatedAt = time.Now().Format(time.RFC3339)
-
-					// then store the info into config file
-					configFile.Save()
+					gicLogin2Save(c.Args().Get(0), c.Args().Get(1))
 				}
-
 				return nil
 			},
 		},
@@ -94,6 +101,23 @@ func command() {
 					Usage:    "list all the datecenter instances",
 					Action: func(c *cli.Context) error {
 						fmt.Println("start to list all the datecenter instace: ", c.Args().First())
+						token := config.CheckToken()
+						if token != "" {
+							// p("token is already valid: ",token)
+							p("logged already")
+							var client = &gic.Client{}
+							client.Init(GICBaseUrl, "")
+							client.LoginWithToken(token)
+							datacenters, err := client.ListDataCenter()
+							if err != nil {
+								log.Fatal(err)
+							}
+							for _, d := range datacenters {
+								p("datacenter name:", d.SiteName, ",datacenter resource name:", d.Resource.Name)
+							}
+						} else {
+							p("Pls login first.")
+						}
 						return nil
 					},
 				},
@@ -207,6 +231,27 @@ func noArgs(c *cli.Context) error {
 	return cli.NewExitError("No such commands provided: "+"'"+c.Args().First()+"'"+". Run 'gic help' for usage", 2)
 }
 
+// use sdk to login to get token
+// then store the info into config file
+func gicLogin2Save(username string, pwd string) {
+	var client = &gic.Client{}
+	client.Init(GICBaseUrl, "")
+	client.Login(username, pwd)
+	p("login token insider gicLogin2Save:", client.Token)
+	configFile, err := config.Load("")
+	if err != nil {
+		log.Fatal(err)
+	}
+	configFile.Url = GICBaseUrl
+	configFile.Username = username
+	configFile.Cred = pwd
+	configFile.Token.Val = client.Token
+	configFile.Token.CreatedAt = time.Now().Format(time.RFC3339)
+
+	// then store the info into config file
+	configFile.Save()
+}
+
 func main() {
 	info()
 	command()
@@ -215,6 +260,9 @@ func main() {
 	app.Action = noArgs
 
 	err := app.Run(os.Args)
+	// for debug
+	// err := app.Run([]string{"login"})
+
 	if err != nil {
 		log.Fatal(err)
 	}
