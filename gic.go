@@ -64,7 +64,7 @@ func command() {
 						if err != nil {
 							fmt.Printf("username input failed %v\n", err)
 						}
-						fmt.Printf("Your username is %q\n", username)
+						// fmt.Printf("Your username is %q\n", username)
 
 						pwdProm := promptui.Prompt{
 							Label: "Password",
@@ -75,7 +75,7 @@ func command() {
 						if err != nil {
 							fmt.Printf("Prompt failed %v\n", err)
 						}
-						fmt.Printf("Your password is %q\n", pwd)
+						// fmt.Printf("Your password is %q\n", pwd)
 
 						// use sdk to login to get token
 						// then store the info into config file
@@ -91,7 +91,7 @@ func command() {
 		},
 		{
 			// TODO: add options to specifiy the datacenter resource
-			Name:    "datcenter",
+			Name:    "datacenter",
 			Aliases: []string{"dc"},
 			Usage:   "manage the gic datacenter instances, you can `list`,`create`,`delete`,`info`",
 			Subcommands: []*cli.Command{
