@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	GICBaseUrl = "http://api2.capitalonline.net"
+	GICBaseUrl = "https://api2.capitalonline.net"
 )
 
 var (
