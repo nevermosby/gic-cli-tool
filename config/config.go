@@ -153,6 +153,7 @@ func (configFile *ConfigFile) SaveToWriter(writer io.Writer) error {
 
 	// InitConf(writer.Name())
 	// configFile.Filename = writer.Name()
+	configFile.Cred = ""
 	data, err := json.MarshalIndent(configFile, "", "\t")
 	if err != nil {
 		return err

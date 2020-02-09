@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/nevermosby/gic-cli-tool/config"
@@ -64,7 +65,6 @@ func command() {
 						if err != nil {
 							fmt.Printf("username input failed %v\n", err)
 						}
-						// fmt.Printf("Your username is %q\n", username)
 
 						pwdProm := promptui.Prompt{
 							Label: "Password",
@@ -75,18 +75,87 @@ func command() {
 						if err != nil {
 							fmt.Printf("Prompt failed %v\n", err)
 						}
-						// fmt.Printf("Your password is %q\n", pwd)
 
 						// use sdk to login to get token
 						// then store the info into config file
 						gicLogin2Save(username, pwd)
 					}
 				} else {
-					// use the provides cred to login
 					fmt.Println("list the command args:", c.Args())
-					gicLogin2Save(c.Args().Get(0), c.Args().Get(1))
+					if c.Args().Get(0) == "help" {
+						p("show the help text")
+					} else {
+						p("pls login without args")
+					}
 				}
 				return nil
+			},
+		},
+		{
+			Name:    "os",
+			Aliases: []string{"os"},
+			Usage:   "manage the available os, you can `list` `search`",
+			Subcommands: []*cli.Command{
+				{
+					Name:     "list",
+					Category: "os",
+					Usage:    "list all the availabe os",
+					Action: func(c *cli.Context) error {
+						token := config.CheckToken()
+						if token != "" {
+							// p("logged already")
+							var client = &gic.Client{}
+							client.Init(GICBaseUrl, "")
+							client.LoginWithToken(token)
+							osList, err := client.ListOS()
+							if err != nil {
+								log.Fatal(err)
+							}
+							for _, os := range osList {
+								p("os display name: ", os.DisplayName)
+							}
+
+						} else {
+							p("Pls login first.")
+						}
+						return nil
+					},
+				},
+				{
+					Name:      "search",
+					Category:  "os",
+					Usage:     "search for all the availabe os with keyword",
+					ArgsUsage: "[keyword]",
+					Action: func(c *cli.Context) error {
+						keyword := c.Args().First()
+						token := config.CheckToken()
+						var matchedOS []string
+						var displayName string
+						if token != "" {
+							// p("logged already")
+							var client = &gic.Client{}
+							client.Init(GICBaseUrl, "")
+							client.LoginWithToken(token)
+							osList, err := client.ListOS()
+							if err != nil {
+								log.Fatal(err)
+							}
+							for _, os := range osList {
+								displayName = os.DisplayName
+								if strings.Contains(strings.ToLower(displayName), keyword) {
+									matchedOS = append(matchedOS, displayName)
+								}
+							}
+							for _, mos := range matchedOS {
+								p("Found:", mos)
+							}
+
+						} else {
+							p("Pls login first.")
+						}
+						return nil
+					},
+				},
 			},
 		},
 		{
@@ -100,11 +169,11 @@ func command() {
 					Category: "dc",
 					Usage:    "list all the datecenter instances",
 					Action: func(c *cli.Context) error {
-						fmt.Println("start to list all the datecenter instace: ", c.Args().First())
+						p("start to list all the datecenter instace: ", c.Args().First())
 						token := config.CheckToken()
 						if token != "" {
 							// p("token is already valid: ",token)
-							p("logged already")
+							// p("logged already")
 							var client = &gic.Client{}
 							client.Init(GICBaseUrl, "")
 							client.LoginWithToken(token)
